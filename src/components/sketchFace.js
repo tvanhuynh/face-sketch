@@ -18,11 +18,19 @@ class SketchFace extends Component {
         },
         eyes : {
             eyeHeight: .33,
-        }
+        },
     };
 
     constructor(props) {
         super(props);
+        this.inputProps = {
+            type: 'range',
+            step: .01,
+            min: 0,
+            max: 1,
+        }
+
+
         this.facePath = new paper.Path();
         this.facePath.strokeColor = 'black';
         this.facePath.strokeWidth = .5;
@@ -73,7 +81,7 @@ class SketchFace extends Component {
      }
 
     /**
-     * Draw the initial shape of the face.
+     * Draw the shape of the face.
      * @return {null}
      */
     drawFace = () => {
@@ -100,7 +108,7 @@ class SketchFace extends Component {
         // this.facePath.segments[1].handleIn = this.facePath.segments[1].handleIn.normalize(30);
         // this.facePath.segments[1].handleOut = this.facePath.segments[1].handleOut.normalize(30);
 
-        // this.facePath.fullySelected = true;
+        this.facePath.fullySelected = true;
 
         return null;
     }
@@ -112,20 +120,14 @@ class SketchFace extends Component {
             <div id="forehead-controls">
                 <label htmlFor="foreheadLine">Forehead Height</label>
                 <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step=".05"
+                    {...this.inputProps}
                     id="foreheadLine"
                     defaultValue={this.state.face.foreheadLine}
                     onChange={this.handleChange}
                 />
                 <label htmlFor="foreheadWidth">Forehead Width</label>
                 <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step=".05"
+                    {...this.inputProps}
                     id="foreheadWidth"
                     defaultValue={this.state.face.foreheadWidth}
                     onChange={this.handleChange}
@@ -134,20 +136,14 @@ class SketchFace extends Component {
             <div id="cheek-controls">
                 <label htmlFor="cheekLine">Cheek Height</label>
                 <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step=".05"
+                    {...this.inputProps}
                     id="cheekLine"
                     defaultValue={this.state.face.cheekLine}
                     onChange={this.handleChange}
                 />
                 <label htmlFor="cheekWidth">Cheek Width</label>
                 <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step=".05"
+                    {...this.inputProps}
                     id="cheekWidth"
                     defaultValue={this.state.face.cheekWidth}
                     onChange={this.handleChange}
@@ -156,20 +152,14 @@ class SketchFace extends Component {
             <div id="jaw-controls">
                 <label htmlFor="jawLine">Jaw Height</label>
                 <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step=".05"
+                    {...this.inputProps}
                     id="jawLine"
                     defaultValue={this.state.face.jawLine}
                     onChange={this.handleChange}
                 />
                 <label htmlFor="jawWidth">Jaw Width</label>
                 <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step=".05"
+                    {...this.inputProps}
                     id="jawWidth"
                     defaultValue={this.state.face.jawWidth}
                     onChange={this.handleChange}
@@ -178,20 +168,14 @@ class SketchFace extends Component {
             <div id="chin-controls">
                 <label htmlFor="chinLine">Chin Height</label>
                 <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step=".05"
+                    {...this.inputProps}
                     id="chinLine"
                     defaultValue={this.state.face.chinLine}
                     onChange={this.handleChange}
                 />
                 <label htmlFor="chinWidth">Chin Width</label>
                 <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step=".05"
+                    {...this.inputProps}
                     id="chinWidth"
                     defaultValue={this.state.face.chinWidth}
                     onChange={this.handleChange}
