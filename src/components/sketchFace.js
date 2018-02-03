@@ -8,16 +8,22 @@ class SketchFace extends Component {
             // y-coordinates of features
             foreheadLine: .1,
             cheekLine: .4,
-            backJawLine: .5,
-            frontJawLine: .7,
+            cheekConcaveLine: .5,
+            jawLine: .7,
             chinLine: .90,
 
             // x-widths of features
             foreheadWidth: .3,
             cheekWidth: .4,
-            backJawWidth: .38,
-            frontJawWidth: .33,
+            cheekConcaveWidth: .38,
+            jawWidth: .33,
             chinWidth: .1,
+
+            // curves of features
+            cheekCurve: .4,
+            cheekConcaveCurve: .38,
+            jawCurve: .33,
+            chinCurve: .1,
         },
         eyes : {
             eyeHeight: .33,
@@ -37,25 +43,38 @@ class SketchFace extends Component {
 
         this.face = {};
         this.face.path = new paper.Path();
-        this.face.properties = {
-            forehead: this.calculatePoints(this.state.face.foreheadWidth, this.state.face.foreheadLine),
-            cheek: this.calculatePoints(this.state.face.cheekWidth, this.state.face.cheekLine),
-            backJaw: this.calculatePoints(this.state.face.backJawWidth, this.state.face.backJawLine),
-            frontJaw: this.calculatePoints(this.state.face.frontJawWidth, this.state.face.frontJawLine),
-            chin: this.calculatePoints(this.state.face.chinWidth, this.state.face.chinLine)
+        this.face.points = {
+            forehead: {
+                location: this.calculatePoints(this.state.face.foreheadWidth, this.state.face.foreheadLine),
+                curve: () => {return this.state.face.foreheadCurve}
+            },
+            cheek: {
+                location: this.calculatePoints(this.state.face.cheekWidth, this.state.face.cheekLine),
+                curve: () => {return this.state.face.cheekCurve}
+
+            },
+            cheekConcave: {
+                location: this.calculatePoints(this.state.face.cheekConcaveWidth, this.state.face.cheekConcaveLine),
+                curve: () => {return this.state.face.cheekConcaveCurve}
+            },
+            jaw: {
+                location: this.calculatePoints(this.state.face.jawWidth, this.state.face.jawLine),
+                curve: () => {return this.state.face.jawCurve}
+            },
+            chin: {
+                location: this.calculatePoints(this.state.face.chinWidth, this.state.face.chinLine),
+                curve: () => {return this.state.face.chinCurve}
+            }
         }
 
-        this.face.order = () => {
-            return(
-                [
-                    this.face.properties.forehead,
-                    this.face.properties.cheek,
-                    this.face.properties.backJaw,
-                    this.face.properties.frontJaw,
-                    this.face.properties.chin
-                ]
+        this.face.order = ["forehead", "cheek", "cheekConcave", "jaw", "chin"];
 
-            )
+        this.face.pointsOrder = () => {
+            return this.face.order.map(i => this.face.points[i].location);
+        }
+
+        this.face.curveOrder = () => {
+            return this.face.order.map(i => this.face.points[i].curve());
         }
 
         this.face.path.strokeColor = 'black';
@@ -65,7 +84,6 @@ class SketchFace extends Component {
 
 
     componentDidMount() {
-        // Draw Face
         this.drawFace();
     }
 
@@ -110,27 +128,34 @@ class SketchFace extends Component {
         switch(id) {
             case "foreheadLine":
             case "foreheadWidth":
-                this.face.properties.forehead = this.calculatePoints(this.state.face.foreheadWidth, this.state.face.foreheadLine);
+                this.face.points.forehead.location = this.calculatePoints(this.state.face.foreheadWidth, this.state.face.foreheadLine);
                 this.drawFace();
                 break;
             case "cheekLine":
             case "cheekWidth":
-                this.face.properties.cheek = this.calculatePoints(this.state.face.cheekWidth, this.state.face.cheekLine);
+                this.face.points.cheek.location = this.calculatePoints(this.state.face.cheekWidth, this.state.face.cheekLine);
                 this.drawFace();
                 break;
-            case "backJawLine":
-            case "backJawWidth":
-                this.face.properties.backJaw = this.calculatePoints(this.state.face.backJawWidth, this.state.face.backJawLine);
+            case "cheekConcaveLine":
+            case "cheekConcaveWidth":
+                this.face.points.cheekConcave.location = this.calculatePoints(this.state.face.cheekConcaveWidth, this.state.face.cheekConcaveLine);
                 this.drawFace();
                 break;
-            case "frontJawLine":
-            case "frontJawWidth":
-                this.face.properties.frontJaw = this.calculatePoints(this.state.face.frontJawWidth, this.state.face.frontJawLine);
+            case "jawLine":
+            case "jawWidth":
+                this.face.points.jaw.location = this.calculatePoints(this.state.face.jawWidth, this.state.face.jawLine);
                 this.drawFace();
                 break;
             case "chinLine":
             case "chinWidth":
-                this.face.properties.chin = this.calculatePoints(this.state.face.chinWidth, this.state.face.chinLine);
+                this.face.points.chin.location = this.calculatePoints(this.state.face.chinWidth, this.state.face.chinLine);
+                this.drawFace();
+                break;
+            case "foreheadCurve":
+            case "cheekCurve":
+            case "cheekConcaveCurve":
+            case "jawCurve":
+            case "chinCurve":
                 this.drawFace();
                 break;
             default:
@@ -146,7 +171,7 @@ class SketchFace extends Component {
     drawFace = () => {
         this.face.path.removeSegments();
 
-        const temp = this.face.order();
+        let temp = this.face.pointsOrder();
 
         // draw left side of face
         temp.forEach(element => {
@@ -159,26 +184,17 @@ class SketchFace extends Component {
         });
 
         // add curves
-        this.drawFaceCurves();
+        this.face.path.smooth({ type: 'geometric' });
+        temp = this.face.curveOrder().concat(this.face.curveOrder().reverse());
+        for (let i = 0; i < this.face.path.segments.length; i++) {
+            this.face.path.segments[i].handleIn = this.face.path.segments[i].handleIn.multiply(temp[i]);
+            this.face.path.segments[i].handleOut = this.face.path.segments[i].handleOut.multiply(temp[i]);
+        }
 
         this.face.path.fullySelected = true;
 
         return null;
     }
-
-
-    /**
-     * Adjust the handles of the face
-     * @return {null}
-     */
-
-     drawFaceCurves = () => {
-        this.face.path.smooth({ type: 'geometric' });
-        // this.facePath.segments[1].handleIn = this.facePath.segments[1].handleIn.normalize(300);
-        // this.facePath.segments[1].handleOut = this.facePath.segments[1].handleOut.normalize(300);
-
-        return null;
-     }
 
 
      /**
@@ -212,28 +228,30 @@ class SketchFace extends Component {
         <div id="face-controls">
 
             <div id="forehead-controls">
-                {this.makeControl('Forehead Height', 'foreheadLine')}
+                {this.makeControl('Forehead Position', 'foreheadLine')}
                 {this.makeControl('Forehead Width', 'foreheadWidth')}
+                {this.makeControl('Forehead Curve', 'foreheadCurve')}
             </div>
             
             <div id="cheek-controls">
-                {this.makeControl('Cheek Height', 'cheekLine')}
+                {this.makeControl('Cheek Position', 'cheekLine')}
                 {this.makeControl('Cheek Width', 'cheekWidth')}
+                {this.makeControl('Cheek Curve', 'cheekCurve')}
+                {this.makeControl('Cheek Height', 'cheekConcaveLine')}
+                {this.makeControl('Cheek Depth', 'cheekConcaveWidth')}
+                {this.makeControl('Cheek Inner Curve', 'cheekConcaveCurve')}
             </div>
             
-            <div id="back-jaw-controls">
-                {this.makeControl('Back Jaw Height', 'backJawLine')}
-                {this.makeControl('Back Jaw Width', 'backJawWidth')}
-            </div>
-            
-            <div id="front-jaw-controls">
-                {this.makeControl('Front Jaw Height', 'frontJawLine')}
-                {this.makeControl('Front Jaw Width', 'frontJawWidth')}
+            <div id="jaw-controls">
+                {this.makeControl('Jaw Position', 'jawLine')}
+                {this.makeControl('Jaw Width', 'jawWidth')}
+                {this.makeControl('Jaw Curve', 'jawCurve')}
             </div>
             
             <div id="chin-controls">
-                {this.makeControl('Chin Height', 'chinLine')}
+                {this.makeControl('Chin Position', 'chinLine')}
                 {this.makeControl('Chin Width', 'chinWidth')}
+                {this.makeControl('Chin Curve', 'chinCurve')}
             </div>
 
         </div>
