@@ -19,12 +19,17 @@ class SketchFace extends Component {
         this.regions.mouth = require('./mouth');
         this.regions.nose = require('./nose');
         this.regions.eyes = require('./eyes');
+        this.regions.philtrum = require('./philtrum');
+        this.regions.eyebrows = require('./eyebrows');
+        this.regions.hair = require('./hair');
 
         paper.view.onMouseEnter = (event) => {
             Object.values(this.regions).forEach(region => {
-                Object.values(region.points).forEach(point => {
-                    point.showHighlight();
-                });
+                if (region.points) {
+                    Object.values(region.points).forEach(point => {
+                        point.showHighlight();
+                    });
+                }
             });
             if (this.state.selectedPoint) {
                 this.state.selectedPoint.highlight();            
@@ -33,9 +38,11 @@ class SketchFace extends Component {
 
         paper.view.onMouseLeave = (event) => {
             Object.values(this.regions).forEach(region => {
-                Object.values(region.points).forEach(point => {
-                    point.clearHighlight();
-                });
+                if (region.points) {
+                    Object.values(region.points).forEach(point => {
+                        point.clearHighlight();
+                    });
+                }
             });
         }
 
@@ -108,7 +115,10 @@ class SketchFace extends Component {
                     region.order[i].isClosed,
                     region.order[i].iterations,
                 );
-    
+
+                // check if it has an opacity
+                if (region.order[i].opacity) temp.forEach(i => {i.opacity = region.order[i].opacity})
+
                 // add to paths database
                 region.path.push(...temp);
             } else { // draws two separate shapes
@@ -131,6 +141,12 @@ class SketchFace extends Component {
                     region.order[i].isClosed,
                     region.order[i].iterations,
                 );
+
+                // check if it has an opacity
+                if (region.order[i].opacity) {
+                    tempLeft.forEach(j => {j.opacity = region.order[i].opacity});
+                    tempRight.forEach(j => {j.opacity = region.order[i].opacity});
+                }
     
                 // add to paths database
                 region.path.push(...tempLeft, ...tempRight);

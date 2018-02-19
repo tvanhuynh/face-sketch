@@ -27,3 +27,7 @@ exports.order = [
         isClosed: false
     },
 ];
+
+exports.redraw = [
+    this,
+]

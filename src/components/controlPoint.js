@@ -41,7 +41,7 @@ exports.createPoint = (function (region, x, y, curve = 0, isSymmetric = true, xL
             this.point.left = this.point.left.subtract(event.delta.multiply(new paper.Point(1, -1)));
             this.selector.left.position = this.selector.left.position.subtract(event.delta.multiply(new paper.Point(1, -1)));
             ref.setState({selectedPoint: this.returnFunctions, selectedPointSide: 'right'});
-            ref.draw(region);
+            region.redraw.forEach(i => ref.draw(i));
         }
 
         this.selector.right.onClick = (event) => {
@@ -77,7 +77,7 @@ exports.createPoint = (function (region, x, y, curve = 0, isSymmetric = true, xL
         }
         
         ref.setState({selectedPoint: this.returnFunctions, selectedPointSide: 'left'});
-        ref.draw(region);
+        region.redraw.forEach(i => ref.draw(i));
     }
 
     this.selector.left.onClick = (event) => {
@@ -101,14 +101,14 @@ exports.createPoint = (function (region, x, y, curve = 0, isSymmetric = true, xL
                     this.selector.right.position = this.selector.right.position.add(new paper.Point(x, y));
                     this.selector.left.position = this.selector.left.position.add(new paper.Point(x, y).multiply(-1, 1));
                 }
-                ref.draw(region);
+                region.redraw.forEach(i => ref.draw(i));
             }
             return this.point
         },
         curve: (v = null) => {
             if (v) {
                 this.curve = v;
-                ref.draw(region);
+                region.redraw.forEach(i => ref.draw(i));
             }
             return this.curve;
         },
@@ -151,13 +151,13 @@ exports.createPoint = (function (region, x, y, curve = 0, isSymmetric = true, xL
 exports.calculatePoints = (x, y) => {
    let canvasWidth = paper.view.size.width;
 
-   if (isNaN(x*1) || isNaN(y*1) || typeof(x) === "boolean" || typeof(y) === "boolean") {
-       throw TypeError;
-   } else if (x < 0 || y < 0 || x > 1 || y > 1) {
-       throw RangeError;
-   } else if (typeof(paper.view.size.width) !== "number" || paper.view.size.width <= 0) {
-       throw Error("Invalid canvas size.");
-   }
+//    if (isNaN(x*1) || isNaN(y*1) || typeof(x) === "boolean" || typeof(y) === "boolean") {
+//        throw TypeError;
+//    } else if (x < 0 || y < 0 || x > 1 || y > 1) {
+//        throw RangeError;
+//    } else if (typeof(paper.view.size.width) !== "number" || paper.view.size.width <= 0) {
+//        throw Error("Invalid canvas size.");
+//    }
 
    const xCoordinateLeft = canvasWidth / 2 - canvasWidth * x;
    const xCoordinateRight = canvasWidth / 2 + canvasWidth * x;
@@ -190,25 +190,64 @@ exports.createMirrorPoints = (point, curve) => {
  * Find the midpoint between two points
  * @param {object} a - the first point
  * @param {object} b - the second point
- * @param {boolean} isMirrored - whether or not the point should be mirrored
+ * @param {string} getPoints - whether or not the point should be mirrored
  * @param {number} curve - the curve of the midpoint
+ * @param {number} multiplier - multiplier to use, for other points
  * @returns {object} the midpoint and its mirror, if it has one
  */
 
- exports.findMidpoint = (a, b, isMirrored = true, curve = 1) => {
+ exports.findMidpoint = (a, b, getPoints = 'both', curve = 1, multiplier = .5) => {
     let canvasWidth = paper.view.size.width;
-    let x = Math.abs(a.point().left.x - b.point().left.x)/2 + Math.min(a.point().left.x, b.point().left.x);
-    let y = Math.abs(a.point().left.y - b.point().left.y)/2 + Math.min(a.point().left.y, b.point().left.y);
+    let x = a.point().left.x + (b.point().left.x - a.point().left.x) * multiplier;
+    let y = a.point().left.y + (b.point().left.y - a.point().left.y) * multiplier;
 
-    let rightX = isMirrored ? canvasWidth - x : null
+    let rightX = canvasWidth - x
 
      return {
          point: () => {
              return {
-                 left: new paper.Point(x, y),
-                 right: rightX === null ? null : new paper.Point(rightX, y)
+                 left: getPoints === 'right' ? new paper.Point(rightX, y) : new paper.Point(x, y),
+                 right: getPoints === 'both' ? new paper.Point(rightX, y) : null
              }
          },
          curve: () => curve,
      }
  }
+
+ /**
+  * Get only the left point of a set of points
+  * @param {object} point - the first point
+  * @param {number} curve - new curve, if applicable
+  * @returns {object} a control point with only the left point
+  */
+ 
+  exports.getLeft = (point, curve = null) => {
+      return {
+          point: () => {
+              return {
+                  left: point.point().left,
+                  right: null
+              }
+          },
+          curve: () => curve ? curve : point.curve(),
+      }
+  }
+
+  /**
+   * Get only the right point of a set of points
+   * @param {object} point - the first point
+   * @param {number} curve - new curve, if applicable
+   * @returns {object} a control point with only the right point
+   */
+  
+   exports.getRight = (point, curve = null) => {
+       return {
+           point: () => {
+               return {
+                   left: new paper.Point(paper.view.size.width - point.point().left.x, point.point().left.y),
+                   right: null
+               }
+           },
+           curve: () => curve ? curve : point.curve(),
+       }
+   }
