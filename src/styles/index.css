@@ -1,7 +1,13 @@
 #sketchCanvas {
   background-color: #e5e5e5;
+  float: left;
+  background-size: cover !important;
 }
 
 input[type="range"] {
   width: 500px;
+}
+
+#face-controls {
+  background-color: #808080;
 }
