@@ -8,6 +8,7 @@ class SketchFace extends Component {
     
     state = {
         selectedPoint: null,
+        isDragging: false,
     };
     
     
@@ -67,15 +68,17 @@ class SketchFace extends Component {
 
         // clears the highlights when user leaves canvas
         paper.view.onMouseLeave = (event) => {
-            this.controls.opacity = 0;
+            if (this.state.isDragging) {
+                this.controls.opacity = 1;
+            } else {
+                this.controls.opacity = 0;
+            }
         }
 
         // deselect point when clicking a non-point on canvas
         this.texture.onClick = (event) => {
             if (this.state.selectedPoint) this.state.selectedPoint.deselect();
             this.setState({selectedPoint: null, selectedPointSide: null});
-            let test = new paper.Path.Circle(new paper.Point(50, 50), 50);
-            test.fillColor = 'red';
         }
 
         // allows user to move selected point with arrow keys

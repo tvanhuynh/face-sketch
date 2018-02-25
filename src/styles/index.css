@@ -1,23 +1,33 @@
 #sketchCanvas {
   background-color: #e5e5e5;
-  float: left;
   background-size: cover !important;
-}
-
-input[type="range"] {
-  width: 500px;
-}
-
-#face-controls {
-  background-color: #808080;
-}
-
-#sketchCanvas {
   max-width: 1000px;
   max-height: 1000px;
 }
 
-@media screen and (orientation: portrait) {
+.flex-center {
+  background-color: #e5e5e5;
+  min-width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-image: url(../images/noise.gif);
+  background-blend-mode: screen;
+}
+
+/* input[type="range"] {
+  width: 500px;
+} */
+
+#controls {
+  background-color: #808080;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+@media (orientation: portrait) {
   #sketchCanvas {
     height: 100vw;
     width: 100vw;

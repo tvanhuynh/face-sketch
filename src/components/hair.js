@@ -6,6 +6,8 @@ exports.points = {
     bottom: new controlPoint.createPoint(this, -.305, .89, 1, false),
 }
 
+exports.curl = 0;
+
 exports.order = [
     {
         order: [

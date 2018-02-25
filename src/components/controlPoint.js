@@ -41,21 +41,34 @@ exports.createPoint = (function (region, x, y, curve = 0, isSymmetric = true, xL
 
         this.selector.right.onMouseDrag = (event) => {
             if (xLock) {event.delta.x = 0}
-            this.point.right = this.point.right.add(event.delta);
-            this.selector.right.position = this.selector.right.position.add(event.delta);
-            this.point.left = this.point.left.subtract(event.delta.multiply(new paper.Point(1, -1)));
-            this.selector.left.position = this.selector.left.position.subtract(event.delta.multiply(new paper.Point(1, -1)));
-            if (ref.state.selectedPoint) ref.state.selectedPoint.deselect();
-            ref.setState({selectedPoint: this.returnFunctions, selectedPointSide: 'right'});
-            ref.state.selectedPoint.select();
-            region.redraw.forEach(i => ref.draw(i));
+
+            let result = this.point.right.add(event.delta);
+            if (ref.state.selectedPoint.point() !== this.point) result = null;
+
+            if ( // check if out of bounds
+                result !== null &&
+                result.x < paper.view.viewSize.width &&
+                result.x > 0 &&
+                result.y < paper.view.viewSize.width &&
+                result.y > 0
+            ) {
+                this.point.right = result;
+                this.selector.right.position = result;
+                this.point.left = this.point.left.subtract(event.delta.multiply(new paper.Point(1, -1)));
+                this.selector.left.position = this.selector.left.position.subtract(event.delta.multiply(new paper.Point(1, -1)));
+
+                region.redraw.forEach(i => ref.draw(i));
+            }
         }
 
-        this.selector.right.onClick = (event) => {
+        this.selector.right.onMouseDown = (event) => {
             if (ref.state.selectedPoint) ref.state.selectedPoint.deselect();
-            ref.setState({selectedPoint: this.returnFunctions, selectedPointSide: 'right'});
+            ref.setState({selectedPoint: this.returnFunctions, selectedPointSide: 'right', isDragging: true});
             ref.state.selectedPoint.select();
-            this.selector.right.opacity = exports.highlightOpacityClick;
+        }
+
+        this.selector.right.onMouseUp = (event) => {
+            ref.setState({isDragging: false})
         }
 
     } else {
@@ -79,24 +92,36 @@ exports.createPoint = (function (region, x, y, curve = 0, isSymmetric = true, xL
     
     this.selector.left.onMouseDrag = (event) => {
         if (xLock) {event.delta.x = 0}
-        this.selector.left.opacity = .75;
-        this.point.left = this.point.left.add(event.delta);
-        this.selector.left.position = this.selector.left.position.add(event.delta);
-        if (isSymmetric) {
-            this.point.right = this.point.right.subtract(event.delta.multiply(new paper.Point(1, -1)));
-            this.selector.right.position = this.selector.right.position.subtract(event.delta.multiply(new paper.Point(1, -1)));
+
+        let result = this.point.left.add(event.delta);
+        if (ref.state.selectedPoint.point() !== this.point) result = null;
+
+        if ( // check if out of bounds
+            result !== null &&
+            result.x < paper.view.viewSize.width &&
+            result.x > 0 &&
+            result.y < paper.view.viewSize.width &&
+            result.y > 0
+        ) {
+            this.point.left = this.point.left.add(event.delta);
+            this.selector.left.position = this.selector.left.position.add(event.delta);
+            if (isSymmetric) {
+                this.point.right = this.point.right.subtract(event.delta.multiply(new paper.Point(1, -1)));
+                this.selector.right.position = this.selector.right.position.subtract(event.delta.multiply(new paper.Point(1, -1)));
+                
+                region.redraw.forEach(i => ref.draw(i));
+            }
         }
-        
+    }
+    
+    this.selector.left.onMouseDown = (event) => {
         if (ref.state.selectedPoint) ref.state.selectedPoint.deselect();
-        ref.setState({selectedPoint: this.returnFunctions, selectedPointSide: 'left'});
+        ref.setState({selectedPoint: this.returnFunctions, selectedPointSide: 'left', isDragging: true});
         ref.state.selectedPoint.select();
-        region.redraw.forEach(i => ref.draw(i));
     }
 
-    this.selector.left.onClick = (event) => {
-        if (ref.state.selectedPoint) ref.state.selectedPoint.deselect();
-        ref.setState({selectedPoint: this.returnFunctions, selectedPointSide: 'left'});
-        ref.state.selectedPoint.select();
+    this.selector.left.onMouseUp = (event) => {
+        ref.setState({isDragging: false})
     }
 
     this.returnFunctions = {
