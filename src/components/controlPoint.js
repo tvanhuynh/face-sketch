@@ -1,5 +1,9 @@
 var paper = require('paper');
 
+exports.highlightOpacityDefault = .35;
+exports.highlightOpacityHover = .75;
+exports.highlightOpacityClick = 1;
+
 /**
     * Create new controlPoint object to manipulate points.
     * @param {object} region - reference point to SketchFace component
@@ -13,57 +17,64 @@ var paper = require('paper');
 
 exports.createPoint = (function (region, x, y, curve = 0, isSymmetric = true, xLock = false) {
     var ref = exports.ref;
-    let highlightOpacity = 0;
+    this.selected = false;
+    let color = '#ffd000';
     this.curve = curve;
     this.point = module.exports.calculatePoints(x,y);
 
     if (isSymmetric) {
         this.selector = {
-            left: new paper.Path.Circle(this.point.left, 8),
-            right: new paper.Path.Circle(this.point.right, 8),
+            left: new paper.Path.Circle(this.point.left, ref.ratio * 8),
+            right: new paper.Path.Circle(this.point.right, ref.ratio * 8),
         };
-        this.selector.right.fillColor = 'yellow';
-        this.selector.right.opacity = highlightOpacity;
+        this.selector.right.fillColor = color;
+        this.selector.right.opacity = exports.highlightOpacityDefault;
+        ref.controls.addChild(this.selector.right);
 
         this.selector.right.onMouseEnter = (event) => {
-            this.selector.right.opacity = .5;
+            this.selector.right.opacity = exports.highlightOpacityHover;
         }
 
         this.selector.right.onMouseLeave = (event) => {
-            this.selector.right.opacity = highlightOpacity;
+            this.selector.right.opacity = this.selected ? exports.highlightOpacityClick : exports.highlightOpacityDefault;
         }
 
         this.selector.right.onMouseDrag = (event) => {
             if (xLock) {event.delta.x = 0}
-            this.selector.right.opacity = .5;
             this.point.right = this.point.right.add(event.delta);
             this.selector.right.position = this.selector.right.position.add(event.delta);
             this.point.left = this.point.left.subtract(event.delta.multiply(new paper.Point(1, -1)));
             this.selector.left.position = this.selector.left.position.subtract(event.delta.multiply(new paper.Point(1, -1)));
+            if (ref.state.selectedPoint) ref.state.selectedPoint.deselect();
             ref.setState({selectedPoint: this.returnFunctions, selectedPointSide: 'right'});
+            ref.state.selectedPoint.select();
             region.redraw.forEach(i => ref.draw(i));
         }
 
         this.selector.right.onClick = (event) => {
+            if (ref.state.selectedPoint) ref.state.selectedPoint.deselect();
             ref.setState({selectedPoint: this.returnFunctions, selectedPointSide: 'right'});
+            ref.state.selectedPoint.select();
+            this.selector.right.opacity = exports.highlightOpacityClick;
         }
 
     } else {
         this.point.right = null;
         this.selector = {
-            left: new paper.Path.Circle(this.point.left, 8),
+            left: new paper.Path.Circle(this.point.left, ref.ratio * 8),
         }
     }
-    
-    this.selector.left.fillColor = 'yellow';
-    this.selector.left.opacity = highlightOpacity;
+
+    this.selector.left.fillColor = color;
+    this.selector.left.opacity = exports.highlightOpacityDefault;
+    ref.controls.addChild(this.selector.left);
 
     this.selector.left.onMouseEnter = (event) => {
-        this.selector.left.opacity = .75;
+        this.selector.left.opacity = exports.highlightOpacityHover;
     }
     
     this.selector.left.onMouseLeave = (event) => {
-        this.selector.left.opacity = highlightOpacity;
+        this.selector.left.opacity = this.selected ? exports.highlightOpacityClick : exports.highlightOpacityDefault;
     }
     
     this.selector.left.onMouseDrag = (event) => {
@@ -76,12 +87,16 @@ exports.createPoint = (function (region, x, y, curve = 0, isSymmetric = true, xL
             this.selector.right.position = this.selector.right.position.subtract(event.delta.multiply(new paper.Point(1, -1)));
         }
         
+        if (ref.state.selectedPoint) ref.state.selectedPoint.deselect();
         ref.setState({selectedPoint: this.returnFunctions, selectedPointSide: 'left'});
+        ref.state.selectedPoint.select();
         region.redraw.forEach(i => ref.draw(i));
     }
 
     this.selector.left.onClick = (event) => {
+        if (ref.state.selectedPoint) ref.state.selectedPoint.deselect();
         ref.setState({selectedPoint: this.returnFunctions, selectedPointSide: 'left'});
+        ref.state.selectedPoint.select();
     }
 
     this.returnFunctions = {
@@ -112,29 +127,31 @@ exports.createPoint = (function (region, x, y, curve = 0, isSymmetric = true, xL
             }
             return this.curve;
         },
-        highlight: () => {
-            highlightOpacity = .75;
-            this.selector.left.opacity = .75;
+        select: () => {
+            this.selected = true;
+            this.selector.left.opacity = exports.highlightOpacityClick;
             if (isSymmetric) {
-                this.selector.right.opacity = .75;
+                this.selector.right.opacity = exports.highlightOpacityClick;
             }
-            return null;
         },
-        showHighlight: () => {
-            highlightOpacity = .25;
-            this.selector.left.opacity = .25;
+        deselect: () => {
+            this.selected = false;
+            this.selector.left.opacity = exports.highlightOpacityDefault;
             if (isSymmetric) {
-                this.selector.right.opacity = .25;
+                this.selector.right.opacity = exports.highlightOpacityDefault;
             }
-            return null;
         },
-        clearHighlight: () => {
-            highlightOpacity = 0;
-            this.selector.left.opacity = 0;
-            if (isSymmetric) {
-                this.selector.right.opacity = 0;
+        resize: oldSize => {
+            let ratio = paper.view.viewSize.width / oldSize;
+            this.point.left = this.point.left.multiply(ratio);
+            if (this.point.right) this.point.right = this.point.right.multiply(ratio);
+
+            this.selector.left.position = this.selector.left.position.multiply(ratio);
+            this.selector.left.scale(ratio);
+            if (this.selector.right) {
+                this.selector.right.position = this.selector.right.position.multiply(ratio);
+                this.selector.right.scale(ratio);            
             }
-            return null;
         }
     }
 
@@ -149,15 +166,7 @@ exports.createPoint = (function (region, x, y, curve = 0, isSymmetric = true, xL
 */
 
 exports.calculatePoints = (x, y) => {
-   let canvasWidth = paper.view.size.width;
-
-//    if (isNaN(x*1) || isNaN(y*1) || typeof(x) === "boolean" || typeof(y) === "boolean") {
-//        throw TypeError;
-//    } else if (x < 0 || y < 0 || x > 1 || y > 1) {
-//        throw RangeError;
-//    } else if (typeof(paper.view.size.width) !== "number" || paper.view.size.width <= 0) {
-//        throw Error("Invalid canvas size.");
-//    }
+   let canvasWidth = paper.view.viewSize.width;
 
    const xCoordinateLeft = canvasWidth / 2 - canvasWidth * x;
    const xCoordinateRight = canvasWidth / 2 + canvasWidth * x;
@@ -176,7 +185,7 @@ exports.calculatePoints = (x, y) => {
  */
 
 exports.createMirrorPoints = (point, curve) => {
-    let canvasWidth = paper.view.size.width;
+    let canvasWidth = paper.view.viewSize.width;
     let rightX = canvasWidth / 2 + (canvasWidth / 2 - point.x);
     return {
         point: () => {
@@ -197,7 +206,7 @@ exports.createMirrorPoints = (point, curve) => {
  */
 
  exports.findMidpoint = (a, b, getPoints = 'both', curve = 1, multiplier = .5) => {
-    let canvasWidth = paper.view.size.width;
+    let canvasWidth = paper.view.viewSize.width;
     let x = a.point().left.x + (b.point().left.x - a.point().left.x) * multiplier;
     let y = a.point().left.y + (b.point().left.y - a.point().left.y) * multiplier;
 
@@ -244,7 +253,7 @@ exports.createMirrorPoints = (point, curve) => {
        return {
            point: () => {
                return {
-                   left: new paper.Point(paper.view.size.width - point.point().left.x, point.point().left.y),
+                   left: new paper.Point(paper.view.viewSize.width - point.point().left.x, point.point().left.y),
                    right: null
                }
            },

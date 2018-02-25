@@ -17,14 +17,47 @@ exports.order = [
         iterations: 3,
         variation: 5,
         isOneShape: true,
-        isClosed: false
+        isClosed: false,
+        isShadow: false,
     },
     {
-        order: [exports.points.shadowEye, exports.points.cheekShadowTop, exports.points.cheekShadowMiddle, exports.points.cheekShadowBottom, exports.points.chin, exports.points.chinShadow],
+        order: [
+            exports.points.shadowEye,
+            exports.points.cheekShadowTop,
+            exports.points.cheekShadowMiddle,
+            exports.points.cheekShadowBottom,
+            exports.points.chin,
+            exports.points.chinShadow
+        ],
         iterations: 2,
         variation: 10,
         isOneShape: true,
-        isClosed: false
+        isClosed: false,
+        isShadow: false,
+    },
+    {
+        order: [
+            exports.points.shadowEye,
+            exports.points.cheekShadowTop,
+            exports.points.cheekShadowMiddle,
+            exports.points.cheekShadowBottom,
+            controlPoint.getLeft(exports.points.chin),
+            controlPoint.getLeft(exports.points.jaw),
+            controlPoint.getLeft(exports.points.cheekConcave),
+            controlPoint.getLeft(exports.points.cheek),
+        ],
+        variation: 0,
+        isOneShape: true,
+        isShadow: true,
+    },
+    {
+        order: [
+            exports.points.chin,
+            exports.points.chinShadow
+        ],
+        variation: 0,
+        isOneShape: true,
+        isShadow: true,
     },
 ];
 

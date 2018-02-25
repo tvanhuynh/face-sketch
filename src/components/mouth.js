@@ -19,21 +19,42 @@ exports.order = [
         iterations: 3,
         variation: 5,
         isOneShape: true,
-        isClosed: false
+        isClosed: false,
+        isShadow: false,
     },
     {
         order: [exports.points.lip, exports.points.mouthLineTips, exports.points.mouthLineCenter],
         iterations: 3,
         variation: 5,
         isOneShape: true,
-        isClosed: false
+        isClosed: false,
+        isShadow: false,
     },
     {
         order: () => lowerLip(),
         iterations: 3,
         variation: 4,
         isOneShape: true,
-        isClosed: true
+        isClosed: true,
+        isShadow: false,
+    },
+    {
+        order: [
+            exports.points.cupidsBow,
+            exports.points.upperLip,
+            exports.points.lip,
+            exports.points.mouthLineTips,
+            exports.points.mouthLineCenter
+        ],
+        variation: 0,
+        isOneShape: true,
+        isShadow: true,
+    },
+    {
+        order: () => lowerLip(),
+        variation: 0,
+        isOneShape: true,
+        isShadow: true,
     },
 ]
 

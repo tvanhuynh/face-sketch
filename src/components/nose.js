@@ -31,6 +31,12 @@ exports.order = [
         isOneShape: true,
         isClosed: false
     },
+    {
+        order: () => shadowFill(),
+        variation: 0,
+        isOneShape: true,
+        isShadow: true,
+    },
 ];
 
 exports.redraw = [
@@ -61,5 +67,24 @@ var shadow = () => {
         controlPoint.findMidpoint(exports.points.bridgePoint, exports.points.nostrilStart, 'right', .5, .35),
         controlPoint.getRight(exports.points.middle),
         controlPoint.getRight(exports.points.bottom)
+    ]
+}
+
+var shadowFill = () => {
+    return [
+        controlPoint.findMidpoint(exports.points.bridgePoint, exports.points.nostrilStart, 'right', .5, .35),
+        controlPoint.getRight(exports.points.nostrilEndShadow),
+        exports.points.noseTipShadow,
+        controlPoint.getLeft(exports.points.nostrilEndShadow),
+        controlPoint.getLeft(exports.points.bridgePoint),
+        exports.points.bridgeTop,
+        controlPoint.findMidpoint(exports.points.top, exports.points.bridgeTop, 'left', 0, .25),
+        controlPoint.getLeft(exports.points.top),
+        exports.points.middle,
+        exports.points.bottom,
+        exports.points.nostrilStart,
+        exports.points.nostrilMiddle,
+        exports.points.nostrilEnd,
+        exports.points.noseTip,
     ]
 }

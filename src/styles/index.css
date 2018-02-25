@@ -11,3 +11,22 @@ input[type="range"] {
 #face-controls {
   background-color: #808080;
 }
+
+#sketchCanvas {
+  max-width: 1000px;
+  max-height: 1000px;
+}
+
+@media screen and (orientation: portrait) {
+  #sketchCanvas {
+    height: 100vw;
+    width: 100vw;
+  }
+}
+
+@media screen and (orientation: landscape) {
+  #sketchCanvas {
+    height: 100vh;
+    width: 100vh;
+  }
+}

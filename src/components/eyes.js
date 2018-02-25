@@ -16,10 +16,8 @@ exports.points = {
     outerHoodTop:new controlPoint.createPoint(this, .19, .403, 1),
     outerHoodCorner: new controlPoint.createPoint(this, .232, .43, 1),
 
-    innerBagCorner: new controlPoint.createPoint(this, .097, .467, 1),
     innerBagTop:new controlPoint.createPoint(this, .153, .489, 1),
     outerBagTop:new controlPoint.createPoint(this, .193, .488, 1),
-    outerBagCorner: new controlPoint.createPoint(this, .223, .469, 1),
 }
 
 exports.order = [
@@ -35,11 +33,12 @@ exports.order = [
         iterations: 3,
         variation: 3,
         isOneShape: false,
-        isClosed: true
+        isClosed: true,
+        isShadow: false,
     },
     {
         order: [
-            exports.points.innerCorner, 
+            exports.points.innerCorner,
             exports.points.innerTop, 
             exports.points.outerTop, 
             exports.points.outerCorner, 
@@ -48,19 +47,26 @@ exports.order = [
         variation: 6,
         isOneShape: false,
         isClosed: false,
+        isShadow: false,
+    },
+    {
+        order: () => eyeBags(),
+        variation: 0,
+        isOneShape: false,
+        isShadow: true,
     },
     {
         order: [
-            exports.points.innerBagCorner,
+            exports.points.outerBottom,
+            exports.points.innerBottom,
+            exports.points.innerCorner,
             exports.points.innerBagTop,
             exports.points.outerBagTop,
-            exports.points.outerBagCorner
+            exports.points.outerCorner
         ],
-        iterations: 2,
-        variation: 3,
+        variation: 0,
         isOneShape: false,
-        isClosed: false,
-        opacity: .2,
+        isShadow: true,
     },
     {
         order: [
@@ -73,21 +79,23 @@ exports.order = [
         variation: 3,
         isOneShape: false,
         isClosed: false,
-        opacity: .75,
+        isShadow: false,
     },
     {
         order: () => corneaPoints(),
         iterations: 3,
         variation: 3,
         isOneShape: false,
-        isClosed: false
+        isClosed: false,
+        isShadow: false,
     },
     {
         order: () => pupilPoints(),
         iterations: 6,
         variation: 4,
         isOneShape: false,
-        isClosed: true
+        isClosed: true,
+        isShadow: false,
     }
 ];
 
@@ -124,4 +132,15 @@ var pupilPoints = () => {
     temp = temp.map(i => controlPoint.createMirrorPoints(i, 1) );
     circle.remove();
     return temp;
+}
+
+var eyeBags = () => {
+    return [
+        exports.points.innerCorner,
+        exports.points.innerTop, 
+        exports.points.outerTop, 
+        exports.points.outerCorner,
+        controlPoint.findMidpoint(exports.points.outerTop, exports.points.outerBottom, 'both', 1, .25),
+        controlPoint.findMidpoint(exports.points.innerTop, exports.points.innerBottom, 'both', 1, .25),
+    ];
 }

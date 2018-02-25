@@ -14,7 +14,14 @@ exports.order = [
         iterations: 4,
         variation: 3,
         isOneShape: false,
-        isClosed: true
+        isClosed: true,
+        isShadow: false,
+    },
+    {
+        order: [exports.points.browsOuter, exports.points.browsPointTop, exports.points.browsInnerTop, exports.points.browsInnerBottom, exports.points.browsPointBottom],
+        variation: 0,
+        isOneShape: false,
+        isShadow: true,
     },
 ];
 

@@ -8,7 +8,14 @@ exports.order = [
         iterations:  2,
         variation: 2,
         isOneShape: true,
-        isClosed: false
+        isClosed: false,
+        isShadow: false,
+    },
+    {
+        order: () => philtrumRightShadow(),
+        variation: 0,
+        isOneShape: true,
+        isShadow: true,
     },
 ];
 
