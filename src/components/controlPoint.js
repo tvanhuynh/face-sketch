@@ -41,6 +41,7 @@ exports.createPoint = (function (region, x, y, curve = 0, isSymmetric = true, xL
 
         this.selector.right.onMouseDrag = (event) => {
             if (xLock) {event.delta.x = 0}
+            if (ref.state.selectedPoint === null) return;
 
             let result = this.point.right.add(event.delta);
             if (ref.state.selectedPoint.point() !== this.point) result = null;
@@ -62,6 +63,7 @@ exports.createPoint = (function (region, x, y, curve = 0, isSymmetric = true, xL
         }
 
         this.selector.right.onMouseDown = (event) => {
+            ref.isHair = region.isHair ? true : false;
             if (ref.state.selectedPoint) ref.state.selectedPoint.deselect();
             ref.setState({selectedPoint: this.returnFunctions, selectedPointSide: 'right', isDragging: true});
             ref.state.selectedPoint.select();
@@ -92,6 +94,7 @@ exports.createPoint = (function (region, x, y, curve = 0, isSymmetric = true, xL
     
     this.selector.left.onMouseDrag = (event) => {
         if (xLock) {event.delta.x = 0}
+        if (ref.state.selectedPoint === null) return;
 
         let result = this.point.left.add(event.delta);
         if (ref.state.selectedPoint.point() !== this.point) result = null;
@@ -103,18 +106,19 @@ exports.createPoint = (function (region, x, y, curve = 0, isSymmetric = true, xL
             result.y < paper.view.viewSize.width &&
             result.y > 0
         ) {
-            this.point.left = this.point.left.add(event.delta);
+            this.point.left = result;
             this.selector.left.position = this.selector.left.position.add(event.delta);
             if (isSymmetric) {
                 this.point.right = this.point.right.subtract(event.delta.multiply(new paper.Point(1, -1)));
                 this.selector.right.position = this.selector.right.position.subtract(event.delta.multiply(new paper.Point(1, -1)));
-                
-                region.redraw.forEach(i => ref.draw(i));
             }
+                
+            region.redraw.forEach(i => ref.draw(i));
         }
     }
     
     this.selector.left.onMouseDown = (event) => {
+        ref.isHair = region.isHair ? true : false;
         if (ref.state.selectedPoint) ref.state.selectedPoint.deselect();
         ref.setState({selectedPoint: this.returnFunctions, selectedPointSide: 'left', isDragging: true});
         ref.state.selectedPoint.select();

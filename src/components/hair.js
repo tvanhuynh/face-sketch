@@ -25,3 +25,5 @@ exports.order = [
 exports.redraw = [
     this,
 ]
+
+exports.isHair = true;

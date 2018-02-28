@@ -20,7 +20,6 @@ class SketchFace extends Component {
         this.controls = new paper.Layer();
         this.controls.bringToFront();
         this.drawing.sendToBack();
-        this.texture.blendMode = 'screen';
         this.controls.opacity = 0;
         this.ratio = paper.view.size.width / 1000;
 
@@ -29,7 +28,7 @@ class SketchFace extends Component {
             point: [0, 0],
             size: [paper.view.size.width, paper.view.size.height],
         });
-        bg.fillColor = '#e5e5e5';
+        bg.fillColor = '#ffffff';
         this.drawing.addChild(bg);
         bg.sendToBack();
 
@@ -49,17 +48,28 @@ class SketchFace extends Component {
         this.shadowClip.clipMask = true;
         this.shadowLines.addChild(this.shadowClip);
 
-        const lineRaster = new paper.Raster(lines);
-        lineRaster.translate(new paper.Point(paper.view.size.width/2, paper.view.size.width/2));
-        lineRaster.scale(this.ratio);
-        this.shadowLines.addChild(lineRaster);
+        this.lineRaster = new paper.Raster(lines);
+        this.lineRaster.translate(new paper.Point(paper.view.size.width/2, paper.view.size.width/2));
+        this.lineRaster.scale(this.ratio);
+        this.shadowLines.addChild(this.lineRaster);
         this.drawing.addChild(this.shadowLines);
 
         // create texture
         const noiseRaster = new paper.Raster(noise);
         noiseRaster.translate(new paper.Point(paper.view.size.width/2, paper.view.size.width/2));
         noiseRaster.scale(this.ratio);
+        noiseRaster.blendMode = 'screen';
         this.texture.addChild(noiseRaster);
+
+        // color background
+        const colorBg = new paper.Path.Rectangle({
+            point: [0, 0],
+            size: [paper.view.size.width, paper.view.size.height],
+        });
+        colorBg.fillColor = '#e5e5e5';
+        colorBg.blendMode = 'multiply';
+        this.texture.addChild(colorBg);
+        colorBg.bringToFront();
 
         // shows highlights when user enters canvas
         paper.view.onMouseEnter = (event) => {
@@ -111,31 +121,32 @@ class SketchFace extends Component {
             paper.view.viewSize.height = document.getElementById("sketchCanvas").offsetWidth;
             bg.scale(paper.view.viewSize.width / oldSize, new paper.Point(0, 0));
             this.texture.scale(paper.view.viewSize.width / oldSize, new paper.Point(0, 0));
+            this.lineRaster.scale(paper.view.viewSize.width / oldSize, new paper.Point(0, 0));
 
             // scale drawing + controls
-            Object.values(this.regions).forEach(region => {
-                if(region.points) {
-                    Object.values(region.points).forEach(point => {
-                        point.resize(oldSize);
-                    })
+            for (let region in this.regions) {
+                if(this.regions[region].points) {
+                    for (let point in this.regions[region].points) {
+                        this.regions[region].points[point].resize(oldSize);
+                    }
                 }
-            });
-            Object.values(this.regions).forEach(region => {
-                this.draw(region);
-            });
+            }
+            for (let region in this.regions) {
+                this.draw(this.regions[region])
+            }
         }
 
         // delete after
-        paper.view.onClick = (event) => {
-            console.log("x: " + (paper.view.size.width / 2 - event.point.x)/paper.view.size.width + " & y: " + event.point.y/paper.view.size.width);
-        }
+        // paper.view.onClick = (event) => {
+        //     console.log("x: " + (paper.view.size.width / 2 - event.point.x)/paper.view.size.width + " & y: " + event.point.y/paper.view.size.width);
+        // }
     }
 
 
     componentDidMount() {
-        Object.values(this.regions).forEach(region => {
-            this.draw(region)
-        });
+        for(let region in this.regions) {
+            this.draw(this.regions[region])
+        }
     }
 
 
@@ -144,12 +155,11 @@ class SketchFace extends Component {
      * @param {string} region - facial region to redraw
      * @return {null}
      */
-
     draw = (region) => {
         // clear the drawing + empty the paths database
         if (region.path) region.path.forEach(i => i.remove());
         region.path = [];
-        
+
         // iterate through all paths
         for (let i = 0; i < region.order.length; i++) {
             let orderRef = typeof(region.order[i].order) === 'function' ? region.order[i].order() : region.order[i].order;
@@ -235,6 +245,7 @@ class SketchFace extends Component {
         }
     }
 
+
     /**
      * Makes the path object
      * @param {array} order - order of points to add
@@ -244,7 +255,6 @@ class SketchFace extends Component {
      * @param {number} iterations - total iterations
      * @returns {array} list of paths created
      */
-
      makePath(order, curves, variation, closed, iterations){
          let paths = [];
 
@@ -276,15 +286,16 @@ class SketchFace extends Component {
         return paths;
      }
 
+
      /**
       * Update the shadow clipping mask
       */
       updateShadows = () => {
         this.shadowClip.removeChildren();
 
-        Object.values(this.regions).forEach(region => {
-            region.order.filter(i => i.shadowPath !== undefined).forEach(i => i.shadowPath.forEach(j => this.shadowClip.addChild(j)));
-        });
+        for (let region in this.regions) {
+            this.regions[region].order.filter(i => i.shadowPath !== undefined).forEach(i => i.shadowPath.forEach(j => this.shadowClip.addChild(j)));            
+        }
       }
 
 
@@ -297,25 +308,56 @@ class SketchFace extends Component {
         let v = event.target.value;
         this.state.selectedPoint.curve(v);
         this.setState({selectedPoint: this.state.selectedPoint});
-     }
+     } 
 
 
     render() {
         if (!this.state.selectedPoint) {
-            return ('this is null');
+            return (
+                <div className="control__box">
+                    Select a point for more options.
+                </div>
+            );
+        } else if (!this.isHair) {
+            return (
+                <div>
+                    <div className="control__box">
+                        <div id="controls__curvature">
+                            <label htmlFor='selected-point'>Curvature</label>
+                            <input
+                            type='range'
+                            step='.005'
+                            min='0'
+                            max='1'
+                            id='selected-point'
+                            value={this.state.selectedPoint.curve()}
+                            onChange={this.handleCurveChange}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )
         } else {
             return (
-                <div id="controls">
-                    <label htmlFor='selected-point'>Curvature</label>
-                    <input
-                    type='range'
-                    step='.005'
-                    min='0'
-                    max='1'
-                    id='selected-point'
-                    value={this.state.selectedPoint.curve()}
-                    onChange={this.handleCurveChange}
-                    />
+                <div>
+                    <div className="control__box">
+                        <div id="controls__curvature">
+                            <label htmlFor='selected-point'>Hair Curl</label>
+                            <input
+                            type='range'
+                            step='.005'
+                            min='0'
+                            max='1'
+                            id='selected-point'
+                            value={this.state.selectedPoint.curve()}
+                            onChange={this.handleCurveChange}
+                            />
+                        </div>
+                    </div>
+                    <div className="control__box">
+                        <button style={{marginRight: '5px'}}>Add Hair</button>
+                        <button>Delete Hair</button>
+                    </div>
                 </div>
             )
         }
