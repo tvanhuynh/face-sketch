@@ -11,14 +11,24 @@ body {
   letter-spacing: .05em;
 }
 
+*:focus {
+  outline: none;
+}
+
 
 
 /* CONTROLS */
 
-#controls {
+#controls-wrapper {
   position: absolute;
   bottom: 20px;
   left: 20px;
+}
+
+#image-cropper-controls {
+  position: absolute;
+  top: 20px;
+  right: 20px;
 }
 
 .control__box {
@@ -28,16 +38,12 @@ body {
   display: flex;
   flex-flow: row nowrap;
   align-items: center;
+  justify-content: space-between;
+  width: 300px;
 }
 
 label {
   margin-right: 20px;
-}
-
-#controls__curvature {
-  display: flex;
-  flex-flow: row nowrap;
-  align-items: center;
 }
 
 button {
@@ -48,6 +54,13 @@ button {
   text-transform: uppercase;
   letter-spacing: .05em;
   transition: all .25s ease;
+  margin-left: 5px;
+  color: #000000;
+  text-decoration: none;
+}
+
+button:first-of-type {
+  margin-left: 0;
 }
 
 button:hover {
@@ -55,7 +68,19 @@ button:hover {
   cursor: pointer;
 }
 
+#copy-instructions {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  border: none;
+  justify-content: flex-end;
+  padding: 0;
+}
 
+
+input[type=text] {
+  flex-grow: 1;
+}
 
 /* STYLING RANGE INPUT */
 
@@ -65,6 +90,7 @@ input[type=range] {
   -webkit-appearance: none;
   background: transparent;
   height: 20px;
+  flex-grow: 1;
 }
 
 input[type=range]::-webkit-slider-thumb {
@@ -80,6 +106,7 @@ input[type=range]::-ms-track {
   background: transparent; 
   border-color: transparent;
   color: transparent;
+  flex-grow: 1;
 }
 
 input[type=range]::-webkit-slider-thumb {
@@ -155,6 +182,7 @@ input[type=range]:focus::-ms-fill-upper {
 #sketchCanvas {
   max-width: 1000px;
   max-height: 1000px;
+  border: solid 1px #cccccc;
 }
 
 .flex-center {
@@ -168,14 +196,18 @@ input[type=range]:focus::-ms-fill-upper {
 
 @media (orientation: portrait) {
   #sketchCanvas {
-    height: 100vw;
-    width: 100vw;
+    height: 90vw;
+    width: 90vw;
   }
 }
 
 @media screen and (orientation: landscape) {
   #sketchCanvas {
-    height: 100vh;
-    width: 100vh;
+    height: 90vh;
+    width: 90vh;
   }
+}
+
+body {
+  overflow: hidden;
 }

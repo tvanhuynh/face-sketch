@@ -18,7 +18,9 @@ exports.order = [
         iterations: 3,
         variation: 10,
         isOneShape: true,
-        isClosed: false
+        isClosed: false,
+        curl: 1,
+        volume: 20,
     },
 ]
 
@@ -27,3 +29,32 @@ exports.redraw = [
 ]
 
 exports.isHair = true;
+
+exports.addNew = () => {
+    exports.order.push({
+        order: [
+            new controlPoint.createPoint(this, .068, .075, 1, false),
+            new controlPoint.createPoint(this, -.253, .49, 1, false),
+            new controlPoint.createPoint(this, -.305, .89, 1, false),
+        ],
+        iterations: 3,
+        variation: 10,
+        isOneShape: true,
+        isClosed: false,
+        curl: 1,
+        volume: 20,
+    });
+}
+
+exports.getOrderParentIndex = point => {
+    let result = null;
+    for (let i = 0; i < this.order.length; i++) {
+        for (let j = 0; j < this.order[i].order.length; j++ ) {
+            if (point === this.order[i].order[j]) {
+                result = i;
+            }
+        }
+    }
+
+    return result;
+}

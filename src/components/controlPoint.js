@@ -119,6 +119,10 @@ exports.createPoint = (function (region, x, y, curve = 0, isSymmetric = true, xL
     
     this.selector.left.onMouseDown = (event) => {
         ref.isHair = region.isHair ? true : false;
+        if (region.isHair) {
+            let i = region.getOrderParentIndex(this.returnFunctions);
+            ref.setState({curl: region.order[i].curl, volume: region.order[i].volume});
+        }
         if (ref.state.selectedPoint) ref.state.selectedPoint.deselect();
         ref.setState({selectedPoint: this.returnFunctions, selectedPointSide: 'left', isDragging: true});
         ref.state.selectedPoint.select();
@@ -181,7 +185,11 @@ exports.createPoint = (function (region, x, y, curve = 0, isSymmetric = true, xL
                 this.selector.right.position = this.selector.right.position.multiply(ratio);
                 this.selector.right.scale(ratio);            
             }
-        }
+        },
+        destroy: () => {
+            this.selector.left.remove();
+            if(this.point.right) this.selector.right.remove();
+        },
     }
 
     return this.returnFunctions;

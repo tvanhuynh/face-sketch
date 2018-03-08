@@ -121,7 +121,7 @@ var corneaPoints = () => {
         temp.push(temp.shift());
         circle.remove();
         intersection.remove();
-        return temp;
+        return temp[0] ? temp : [];
     }
     return [];
 }
